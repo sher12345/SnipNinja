@@ -1,0 +1,2598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnipNinja — The Director's Cut of Video Editing</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --pure-black: #000000;
+            --rich-black: #050505;
+            --void: #0a0a0a;
+            --depth: #111111;
+            --surface: #1a1a1a;
+            --elevated: #222222;
+            --mist: #2a2a2a;
+            --fog: #333333;
+            --chrome: #888888;
+            --silver: #aaaaaa;
+            --platinum: #e0e0e0;
+            --white: #ffffff;
+            
+            --neon-cyan: #00f0ff;
+            --electric-magenta: #ff2a6d;
+            --molten-gold: #ffd700;
+            --plasma-purple: #b026ff;
+            --acid-green: #39ff14;
+            
+            --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--pure-black);
+            color: var(--white);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Cinematic Grain Overlay */
+        .grain-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            animation: grainShift 0.5s steps(10) infinite;
+        }
+
+        @keyframes grainShift {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -10%); }
+            20% { transform: translate(-15%, 5%); }
+            30% { transform: translate(7%, -25%); }
+            40% { transform: translate(-5%, 25%); }
+            50% { transform: translate(-15%, 10%); }
+            60% { transform: translate(15%, 0%); }
+            70% { transform: translate(0%, 15%); }
+            80% { transform: translate(3%, 35%); }
+            90% { transform: translate(-10%, 10%); }
+        }
+
+        /* Ambient Light Effects */
+        .ambient-light {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(150px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            transition: all 2s var(--ease-expo);
+        }
+
+        .light-1 {
+            background: var(--neon-cyan);
+            top: -300px;
+            left: -300px;
+            animation: float1 20s infinite;
+        }
+
+        .light-2 {
+            background: var(--electric-magenta);
+            bottom: -300px;
+            right: -300px;
+            animation: float2 25s infinite;
+        }
+
+        .light-3 {
+            background: var(--plasma-purple);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse3 15s infinite;
+        }
+
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(100px, 50px) scale(1.2); }
+            66% { transform: translate(-50px, 100px) scale(0.8); }
+        }
+
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-100px, -100px) scale(1.3); }
+        }
+
+        @keyframes pulse3 {
+            0%, 100% { opacity: 0.1; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.2; transform: translate(-50%, -50%) scale(1.5); }
+        }
+
+        /* Navigation — Glassmorphism Premium */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 1.5rem 4%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.6s var(--ease-expo);
+        }
+
+        nav.scrolled {
+            padding: 1rem 4%;
+            background: rgba(5, 5, 5, 0.85);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--electric-magenta));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+            transition: all 0.4s var(--ease-expo);
+        }
+
+        .logo-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .logo-container:hover .logo-icon::before {
+            transform: translateX(100%);
+        }
+
+        .logo-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, var(--white) 0%, var(--platinum) 50%, var(--chrome) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+
+        .logo-text::after {
+            content: 'SnipNinja';
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--electric-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .logo-container:hover .logo-text::after {
+            opacity: 1;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 3rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            color: var(--silver);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.4s;
+            cursor: pointer;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--electric-magenta));
+            transition: width 0.4s var(--ease-expo);
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--white);
+        }
+
+        .nav-link:hover::before, .nav-link.active::before {
+            width: 100%;
+        }
+
+        .nav-cta {
+            padding: 0.9rem 2rem;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(255, 42, 109, 0.1));
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 100px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s var(--ease-expo);
+        }
+
+        .nav-cta::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--electric-magenta));
+            opacity: 0;
+            transition: opacity 0.4s;
+            z-index: -1;
+        }
+
+        .nav-cta:hover {
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0, 240, 255, 0.3);
+        }
+
+        .nav-cta:hover::before {
+            opacity: 1;
+        }
+
+        .cart-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.4s var(--ease-expo);
+            margin-left: 1.5rem;
+        }
+
+        .cart-btn:hover {
+            background: var(--elevated);
+            border-color: var(--neon-cyan);
+            transform: scale(1.1);
+        }
+
+        .cart-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 20px;
+            height: 20px;
+            background: var(--electric-magenta);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.4s var(--ease-bounce);
+        }
+
+        .cart-indicator.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .section.active {
+            display: block;
+            animation: sectionReveal 1s var(--ease-expo);
+        }
+
+        @keyframes sectionReveal {
+            from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* Hero — Cinematic Full-Screen */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 0 4%;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(0, 240, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 42, 109, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(176, 38, 255, 0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 2;
+            max-width: 1000px;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(0, 240, 255, 0.1);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            animation: badgeFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes badgeFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 10px rgba(0, 240, 255, 0); }
+        }
+
+        .hero-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .hero-title .line {
+            display: block;
+            background: linear-gradient(135deg, var(--white) 0%, var(--platinum) 30%, var(--neon-cyan) 60%, var(--electric-magenta) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.1rem, 2vw, 1.4rem);
+            color: var(--chrome);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        .hero-cta-group {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+            padding: 1.2rem 3rem;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--electric-magenta));
+            border: none;
+            border-radius: 100px;
+            color: var(--pure-black);
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s var(--ease-expo);
+            box-shadow: 0 10px 40px rgba(0, 240, 255, 0.3);
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-hero-secondary {
+            padding: 1.2rem 3rem;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 100px;
+            color: var(--white);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s var(--ease-expo);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-hero-secondary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .btn-hero-secondary:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-hero-secondary:hover::before {
+            opacity: 1;
+        }
+
+        /* Hero Stats — Floating Cards */
+        .hero-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 5rem;
+            perspective: 1000px;
+        }
+
+        .stat-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem 2.5rem;
+            text-align: center;
+            min-width: 160px;
+            transform-style: preserve-3d;
+            transition: all 0.6s var(--ease-expo);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) rotateX(10deg);
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-number {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--molten-gold), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: var(--chrome);
+            font-size: 0.9rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Scroll Indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--chrome);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        .scroll-line {
+            width: 1px;
+            height: 60px;
+            background: linear-gradient(to bottom, var(--neon-cyan), transparent);
+        }
+
+        /* Section Headers */
+        .section-header {
+            text-align: center;
+            padding: 8rem 4% 4rem;
+            position: relative;
+        }
+
+        .section-eyebrow {
+            display: inline-block;
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .section-eyebrow::before, .section-eyebrow::after {
+            content: '—';
+            margin: 0 1rem;
+            color: var(--fog);
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--white) 0%, var(--platinum) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            color: var(--chrome);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Editor Cards — Cinematic Hover */
+        .editor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 2.5rem;
+            padding: 0 4% 6rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .editor-card {
+            background: var(--surface);
+            border-radius: 32px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            transition: all 0.6s var(--ease-expo);
+            cursor: pointer;
+            transform-style: preserve-3d;
+        }
+
+        .editor-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(255, 42, 109, 0.1));
+            opacity: 0;
+            transition: opacity 0.6s;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .editor-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: rgba(0, 240, 255, 0.3);
+            box-shadow: 
+                0 40px 80px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(0, 240, 255, 0.2);
+        }
+
+        .editor-card:hover::before {
+            opacity: 1;
+        }
+
+        .editor-visual {
+            height: 280px;
+            position: relative;
+            overflow: hidden;
+            background: var(--depth);
+        }
+
+        .editor-visual::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, var(--surface) 0%, transparent 50%);
+            z-index: 1;
+        }
+
+        .portfolio-showcase {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            transition: transform 0.8s var(--ease-expo);
+        }
+
+        .portfolio-frame {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portfolio-frame::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, rgba(0,0,0,0.4), transparent);
+        }
+
+        .editor-card:hover .portfolio-nav {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .portfolio-nav {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            display: flex;
+            gap: 0.8rem;
+            z-index: 3;
+            opacity: 0;
+            transition: all 0.4s var(--ease-expo);
+        }
+
+        .nav-dot {
+            width: 40px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-dot::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            background: var(--neon-cyan);
+            transition: width 0.3s;
+        }
+
+        .nav-dot.active::after {
+            width: 100%;
+        }
+
+        .editor-info {
+            padding: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+        }
+
+        .editor-identity {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .editor-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--electric-magenta));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.3);
+        }
+
+        .editor-name-group h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .editor-tier {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 1rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tier-apprentice {
+            background: rgba(205, 127, 50, 0.2);
+            color: #cd7f32;
+            border: 1px solid rgba(205, 127, 50, 0.3);
+        }
+
+        .tier-ninja {
+            background: rgba(0, 240, 255, 0.15);
+            color: var(--neon-cyan);
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
+        .tier-shadow {
+            background: rgba(255, 42, 109, 0.15);
+            color: var(--electric-magenta);
+            border: 1px solid rgba(255, 42, 109, 0.3);
+        }
+
+        .editor-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .stat-label-small {
+            font-size: 0.8rem;
+            color: var(--chrome);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .editor-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .skill-tag {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid rgba(0, 240, 255, 0.15);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            color: var(--neon-cyan);
+            transition: all 0.3s;
+        }
+
+        .skill-tag:hover {
+            background: rgba(0, 240, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .editor-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .price-display {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .price-amount {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--molten-gold);
+            line-height: 1;
+        }
+
+        .price-unit {
+            font-size: 0.85rem;
+            color: var(--chrome);
+        }
+
+        .select-btn {
+            padding: 1rem 2rem;
+            background: var(--white);
+            color: var(--pure-black);
+            border: none;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.4s var(--ease-expo);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .select-btn:hover {
+            background: var(--neon-cyan);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4);
+        }
+
+        /* Package Builder — Immersive */
+        .builder-container {
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 4rem;
+            padding: 2rem 4% 6rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            min-height: calc(100vh - 200px);
+        }
+
+        @media (max-width: 1200px) {
+            .builder-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .builder-main h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .builder-desc {
+            color: var(--chrome);
+            margin-bottom: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .service-category {
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeUp 0.8s var(--ease-expo) forwards;
+        }
+
+        .service-category:nth-child(1) { animation-delay: 0.1s; }
+        .service-category:nth-child(2) { animation-delay: 0.2s; }
+        .service-category:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .category-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(255, 42, 109, 0.1));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .category-count {
+            margin-left: auto;
+            font-size: 0.9rem;
+            color: var(--chrome);
+            background: var(--surface);
+            padding: 0.4rem 1rem;
+            border-radius: 100px;
+        }
+
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .service-card {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 2rem;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.4s var(--ease-expo);
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(255, 42, 109, 0.1));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .service-card:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .service-card.selected {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .service-card.selected::before {
+            opacity: 1;
+        }
+
+        .service-check {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .service-card.selected .service-check {
+            background: var(--neon-cyan);
+            border-color: var(--neon-cyan);
+            color: var(--pure-black);
+        }
+
+        .service-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-desc {
+            color: var(--chrome);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .service-price {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--molten-gold);
+        }
+
+        .service-unit {
+            font-size: 0.85rem;
+            color: var(--chrome);
+        }
+
+        /* Complexity Slider — Premium */
+        .complexity-section {
+            background: var(--surface);
+            border-radius: 32px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .complexity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .complexity-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: var(--chrome);
+            font-size: 0.9rem;
+        }
+
+        .complexity-slider-container {
+            position: relative;
+            height: 8px;
+            background: var(--elevated);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .complexity-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--electric-magenta));
+            border-radius: 4px;
+            transition: width 0.4s var(--ease-expo);
+            width: 50%;
+        }
+
+        .complexity-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 28px;
+            height: 28px;
+            background: var(--white);
+            border-radius: 50%;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            cursor: grab;
+            transition: transform 0.2s;
+            left: 50%;
+        }
+
+        .complexity-thumb:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        /* Turnaround Selector */
+        .turnaround-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .turnaround-card {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s var(--ease-expo);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .turnaround-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(255, 42, 109, 0.1));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .turnaround-card:hover {
+            border-color: rgba(0, 240, 255, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .turnaround-card.selected {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .turnaround-card.selected::before {
+            opacity: 1;
+        }
+
+        .turnaround-speed {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .turnaround-time {
+            color: var(--chrome);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .turnaround-fee {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--molten-gold);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Cart Sidebar — Glass Panel */
+        .cart-sidebar {
+            position: sticky;
+            top: 120px;
+            background: rgba(26, 26, 26, 0.8);
+            backdrop-filter: blur(40px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 2.5rem;
+            height: fit-content;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .cart-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .cart-badge {
+            width: 32px;
+            height: 32px;
+            background: var(--electric-magenta);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.4s var(--ease-bounce);
+        }
+
+        .cart-badge.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 2rem;
+            padding-right: 0.5rem;
+        }
+
+        .cart-items::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .cart-items::-webkit-scrollbar-thumb {
+            background: var(--fog);
+            border-radius: 2px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            margin-bottom: 0.8rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            animation: slideIn 0.4s var(--ease-expo);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .cart-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(0, 240, 255, 0.2);
+        }
+
+        .cart-item-info h4 {
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+
+        .cart-item-info span {
+            font-size: 0.85rem;
+            color: var(--chrome);
+        }
+
+        .cart-item-price {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            color: var(--molten-gold);
+        }
+
+        .remove-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 68, 68, 0.1);
+            border: none;
+            color: var(--electric-magenta);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            margin-left: 1rem;
+        }
+
+        .remove-btn:hover {
+            background: rgba(255, 68, 68, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .cart-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--chrome);
+        }
+
+        .cart-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .cart-summary {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 2rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: var(--chrome);
+            font-size: 0.95rem;
+        }
+
+        .summary-row.highlight {
+            color: var(--neon-cyan);
+            font-weight: 500;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 1.5rem;
+        }
+
+        .total-label {
+            font-size: 1.1rem;
+            color: var(--platinum);
+        }
+
+        .total-amount {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--molten-gold), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 1.3rem;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--electric-magenta));
+            border: none;
+            border-radius: 16px;
+            color: var(--pure-black);
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.4s var(--ease-expo);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .checkout-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--electric-magenta), var(--neon-cyan));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .checkout-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(0, 240, 255, 0.4);
+        }
+
+        .checkout-btn:hover:not(:disabled)::before {
+            opacity: 1;
+        }
+
+        .checkout-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .checkout-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Modal — Cinematic Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-container {
+            background: var(--surface);
+            border-radius: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 700px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            transform: scale(0.9) translateY(50px);
+            transition: transform 0.6s var(--ease-expo);
+            box-shadow: 0 60px 120px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            padding: 2.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--elevated);
+            border: none;
+            color: var(--chrome);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: var(--electric-magenta);
+            color: var(--white);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 2.5rem;
+            overflow-y: auto;
+            max-height: calc(90vh - 200px);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            color: var(--platinum);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 1.2rem 1.5rem;
+            background: var(--elevated);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            color: var(--white);
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            border-color: var(--neon-cyan);
+            background: var(--mist);
+            box-shadow: 0 0 0 4px rgba(0, 240, 255, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .file-dropzone {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s;
+            background: var(--elevated);
+        }
+
+        .file-dropzone:hover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        .file-dropzone.dragover {
+            border-color: var(--neon-cyan);
+            background: rgba(0, 240, 255, 0.1);
+            transform: scale(1.02);
+        }
+
+        .dropzone-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .dropzone-text {
+            color: var(--platinum);
+            margin-bottom: 0.5rem;
+        }
+
+        .dropzone-hint {
+            color: var(--chrome);
+            font-size: 0.9rem;
+        }
+
+        /* Toast System */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 2rem;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: 4px solid var(--neon-cyan);
+            border-radius: 16px;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.5s var(--ease-expo);
+            pointer-events: all;
+            min-width: 300px;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success { border-left-color: var(--acid-green); }
+        .toast.error { border-left-color: var(--electric-magenta); }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 240, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .toast.success .toast-icon { background: rgba(57, 255, 20, 0.1); }
+        .toast.error .toast-icon { background: rgba(255, 42, 109, 0.1); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .hero-stats { flex-direction: column; align-items: center; }
+            .editor-grid { grid-template-columns: 1fr; }
+            .turnaround-grid { grid-template-columns: 1fr; }
+            .service-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, var(--surface) 25%, var(--elevated) 50%, var(--surface) 75%);
+            background-size: 200% 100%;
+            animation: skeleton 1.5s infinite;
+            border-radius: 8px;
+        }
+
+        @keyframes skeleton {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Custom Cursor */
+        .cursor-glow {
+            width: 20px;
+            height: 20px;
+            background: var(--neon-cyan);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 9998;
+            mix-blend-mode: screen;
+            filter: blur(4px);
+            opacity: 0.5;
+            transition: transform 0.1s;
+        }
+
+        /* Hide default cursor on desktop */
+        @media (pointer: fine) {
+            body { cursor: none; }
+            a, button { cursor: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Film Grain Overlay -->
+    <div class="grain-overlay"></div>
+    
+    <!-- Ambient Lighting -->
+    <div class="ambient-light light-1"></div>
+    <div class="ambient-light light-2"></div>
+    <div class="ambient-light light-3"></div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-glow" id="cursor"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="logo-container" onclick="showSection('home')">
+            <div class="logo-icon">⚔️</div>
+            <div class="logo-text">SnipNinja</div>
+        </div>
+        
+        <ul class="nav-links">
+            <li><a class="nav-link active" onclick="showSection('home')">Home</a></li>
+            <li><a class="nav-link" onclick="showSection('marketplace')">Editors</a></li>
+            <li><a class="nav-link" onclick="showSection('builder')">Build</a></li>
+            <li><a class="nav-link" onclick="showSection('orders')">Orders</a></li>
+        </ul>
+
+        <div style="display: flex; align-items: center;">
+            <button class="nav-cta" onclick="showSection('marketplace')">Find Your Ninja</button>
+            <div class="cart-btn" onclick="showSection('builder')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 6h15l-1.5 9h-12z"></path>
+                    <circle cx="9" cy="20" r="1.5"></circle>
+                    <circle cx="18" cy="20" r="1.5"></circle>
+                    <path d="M6 6L5 3H2"></path>
+                </svg>
+                <div class="cart-indicator" id="cartIndicator">0</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Sections -->
+    <section id="home" class="section active">
+        <div class="hero">
+            <div class="hero-bg"></div>
+            
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span>Now in 4K ProRes</span>
+                </div>
+                
+                <h1 class="hero-title">
+                    <span class="line">The Director's Cut</span>
+                    <span class="line">of Video Editing</span>
+                </h1>
+                
+                <p class="hero-subtitle">
+                    Handpicked editors. Cinematic quality. Transparent pricing. 
+                    Experience the future of post-production.
+                </p>
+                
+                <div class="hero-cta-group">
+                    <button class="btn-hero-primary" onclick="showSection('marketplace')">
+                        Browse Elite Editors
+                    </button>
+                    <button class="btn-hero-secondary" onclick="showSection('builder')">
+                        Build Custom Package
+                    </button>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-card" onclick="showSection('marketplace')">
+                        <div class="stat-number">48h</div>
+                        <div class="stat-label">Avg Delivery</div>
+                    </div>
+                    <div class="stat-card" onclick="showSection('marketplace')">
+                        <div class="stat-number">50+</div>
+                        <div class="stat-label">Verified Ninjas</div>
+                    </div>
+                    <div class="stat-card" onclick="showSection('builder')">
+                        <div class="stat-number">2</div>
+                        <div class="stat-label">Revisions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scroll-indicator">
+                <span>Scroll</span>
+                <div class="scroll-line"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="marketplace" class="section">
+        <div class="section-header">
+            <div class="section-eyebrow">The Roster</div>
+            <h2 class="section-title">Elite Editorial Talent</h2>
+            <p class="section-subtitle">Browse portfolios, compare styles, select your perfect post-production partner</p>
+        </div>
+
+        <div class="editor-grid" id="editorGrid">
+            <!-- Editors rendered by JS -->
+        </div>
+    </section>
+
+    <section id="builder" class="section">
+        <div class="section-header">
+            <div class="section-eyebrow">Configuration</div>
+            <h2 class="section-title">Build Your Package</h2>
+            <p class="section-subtitle">Curate your services, adjust complexity, set your timeline</p>
+        </div>
+
+        <div class="builder-container">
+            <div class="builder-main">
+                <div class="service-category">
+                    <div class="category-header">
+                        <div class="category-icon">🎬</div>
+                        <div>
+                            <div class="category-title">Core Services</div>
+                        </div>
+                        <div class="category-count" id="coreCount">0 selected</div>
+                    </div>
+                    <div class="service-grid" id="coreServices"></div>
+                </div>
+
+                <div class="service-category">
+                    <div class="category-header">
+                        <div class="category-icon">✨</div>
+                        <div>
+                            <div class="category-title">Enhancements</div>
+                        </div>
+                        <div class="category-count" id="addonCount">0 selected</div>
+                    </div>
+                    <div class="service-grid" id="addonServices"></div>
+                </div>
+
+                <div class="service-category">
+                    <div class="category-header">
+                        <div class="category-icon">⚡</div>
+                        <div>
+                            <div class="category-title">Delivery Speed</div>
+                        </div>
+                    </div>
+                    <div class="turnaround-grid" id="turnaroundGrid"></div>
+                </div>
+
+                <div class="complexity-section">
+                    <div class="complexity-header">
+                        <div>
+                            <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.3rem;">Project Complexity</div>
+                            <div style="color: var(--chrome); font-size: 0.9rem;">Adjust for multi-cam, VFX, color grading intensity</div>
+                        </div>
+                        <div style="font-family: 'Space Grotesk'; font-size: 1.5rem; font-weight: 700; color: var(--neon-cyan);" id="complexityDisplay">1.0x</div>
+                    </div>
+                    <div class="complexity-labels">
+                        <span>Simple</span>
+                        <span>Standard</span>
+                        <span>Complex</span>
+                    </div>
+                    <div class="complexity-slider-container" id="complexitySlider">
+                        <div class="complexity-fill" id="complexityFill"></div>
+                        <div class="complexity-thumb" id="complexityThumb" style="left: 33%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cart-sidebar">
+                <div class="cart-header">
+                    <div class="cart-title">Your Production</div>
+                    <div class="cart-badge" id="cartBadge">0</div>
+                </div>
+                
+                <div class="cart-items" id="cartItems">
+                    <div class="cart-empty">
+                        <div class="cart-empty-icon">🎬</div>
+                        <p>Select services to begin</p>
+                    </div>
+                </div>
+
+                <div class="cart-summary">
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span id="subtotal">$0</span>
+                    </div>
+                    <div class="summary-row highlight">
+                        <span>Complexity Multiplier</span>
+                        <span id="multiplierDisplay">1.0x</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Rush Processing</span>
+                        <span id="rushDisplay">$0</span>
+                    </div>
+                    
+                    <div class="summary-total">
+                        <span class="total-label">Estimated Total</span>
+                        <span class="total-amount" id="totalAmount">$0</span>
+                    </div>
+                </div>
+
+                <button class="checkout-btn" id="checkoutBtn" onclick="openBriefModal()" disabled>
+                    <span>Continue to Brief</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="orders" class="section">
+        <div class="section-header">
+            <div class="section-eyebrow">Productions</div>
+            <h2 class="section-title">Active Orders</h2>
+            <p class="section-subtitle">Track your projects in real-time</p>
+        </div>
+        
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 4% 6rem;" id="ordersList">
+            <div style="text-align: center; padding: 6rem 2rem; background: var(--surface); border-radius: 32px; border: 1px dashed rgba(255,255,255,0.1);">
+                <div style="font-size: 4rem; margin-bottom: 1.5rem; opacity: 0.3;">📋</div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--platinum);">No Active Productions</h3>
+                <p style="color: var(--chrome); margin-bottom: 2rem;">Start by selecting an editor or building a custom package</p>
+                <button class="btn-hero-primary" onclick="showSection('marketplace')" style="padding: 1rem 2rem; font-size: 0.95rem;">
+                    Find an Editor
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="briefModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">Project Brief</h3>
+                <button class="modal-close" onclick="closeModal('briefModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Production Title</label>
+                    <input type="text" class="form-input" placeholder="e.g., Q1 Product Launch - Director's Cut" id="projectTitle">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Content Type</label>
+                    <select class="form-select" id="contentType">
+                        <option>YouTube Documentary</option>
+                        <option>TikTok / Reels Series</option>
+                        <option>Commercial Advertisement</option>
+                        <option>Gaming Highlights</option>
+                        <option>Church Service / Sermon</option>
+                        <option>Corporate Training</option>
+                        <option>Music Video</option>
+                        <option>Event Coverage</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Creative Direction</label>
+                    <textarea class="form-textarea" placeholder="Describe your vision, target audience, brand guidelines, specific pacing preferences, reference films or creators..." id="creativeBrief"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Reference Materials</label>
+                    <div class="file-dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                        <div class="dropzone-icon">📁</div>
+                        <div class="dropzone-text">Drop files or click to upload</div>
+                        <div class="dropzone-hint">MP4, MOV, ProRes, R3D up to 10GB</div>
+                        <input type="file" id="fileInput" multiple style="display: none;" onchange="handleFiles(this.files)">
+                    </div>
+                    <div id="fileList" style="margin-top: 1rem;"></div>
+                </div>
+
+                <button class="checkout-btn" onclick="submitOrder()" style="margin-top: 1rem;">
+                    <span>Submit Production — <span id="submitTotal">$0</span></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Premium Data
+        const editors = [
+            {
+                id: 1,
+                name: "Alex Chen",
+                tier: "shadow",
+                avatar: "👨‍💻",
+                rating: 4.9,
+                projects: 342,
+                earnings: "$48k",
+                skills: ["Gaming", "Reels", "Motion Graphics", "Sound Design"],
+                price: 120,
+                portfolio: ["🎮", "⚡", "🎬"],
+                description: "Former ESL pro editor. Specializes in high-octane gaming content with cinematic pacing.",
+                delivery: "12-24h"
+            },
+            {
+                id: 2,
+                name: "Sarah Miller",
+                tier: "ninja",
+                avatar: "👩‍🎨",
+                rating: 4.8,
+                projects: 156,
+                earnings: "$32k",
+                skills: ["Commercials", "Color Grading", "DaVinci", "Storytelling"],
+                price: 85,
+                portfolio: ["📺", "🎨", "🏢"],
+                description: "Ex-agency senior editor. Expert in conversion-focused brand narratives.",
+                delivery: "24-48h"
+            },
+            {
+                id: 3,
+                name: "Marcus Johnson",
+                tier: "ninja",
+                avatar: "👨‍🎤",
+                rating: 4.7,
+                projects: 89,
+                earnings: "$18k",
+                skills: ["Church Content", "Worship", "Live Events", "Multicam"],
+                price: 70,
+                portfolio: ["⛪", "🙏", "✨"],
+                description: "Worship pastor turned editor. Understands ministry content deeply.",
+                delivery: "48h"
+            },
+            {
+                id: 4,
+                name: "Yuki Tanaka",
+                tier: "apprentice",
+                avatar: "👩‍💻",
+                rating: 4.5,
+                projects: 23,
+                earnings: "$4k",
+                skills: ["Anime", "TikTok", "Subtitles", "Trending Audio"],
+                price: 45,
+                portfolio: ["🎌", "📱", "💬"],
+                description: "Gen-Z content specialist. Viral meme culture and trending formats.",
+                delivery: "72h"
+            },
+            {
+                id: 5,
+                name: "David Park",
+                tier: "shadow",
+                avatar: "👨‍🚀",
+                rating: 5.0,
+                projects: 512,
+                earnings: "$82k",
+                skills: ["AI Video", "VFX", "3D", "Unreal Engine"],
+                price: 150,
+                portfolio: ["🤖", "🌌", "✨"],
+                description: "AI video pioneer. Combines generative AI with cinema-grade post.",
+                delivery: "24h"
+            },
+            {
+                id: 6,
+                name: "Emma Wilson",
+                tier: "ninja",
+                avatar: "👩‍🍳",
+                rating: 4.8,
+                projects: 201,
+                earnings: "$28k",
+                skills: ["Food Content", "YouTube", "Thumbnails", "ASMR Audio"],
+                price: 75,
+                portfolio: ["🍳", "📸", "👩‍🍳"],
+                description: "Food content specialist. Creates mouth-watering visual stories.",
+                delivery: "48h"
+            }
+        ];
+
+        const services = {
+            core: [
+                { id: 'base', name: 'Base Editing', desc: 'Assembly cut, transitions, audio sync, basic color', price: 50, unit: 'per min' },
+                { id: 'color', name: 'Cinematic Color', desc: 'DaVinci Resolve grading, LUT application, shot matching', price: 80, unit: 'flat' },
+                { id: 'sound', name: 'Sound Design', desc: 'Audio mixing, SFX, music bed, noise reduction', price: 60, unit: 'flat' }
+            ],
+            addons: [
+                { id: 'captions', name: 'Dynamic Captions', desc: 'Animated subtitles, multi-language, branded styles', price: 25, unit: 'per min' },
+                { id: 'thumbnails', name: 'Thumbnail Suite', desc: '3 variants, A/B tested, platform-optimized', price: 45, unit: 'flat' },
+                { id: 'hooks', name: 'Hook Package', desc: '3 attention-grabbing intros, retention-optimized', price: 55, unit: 'flat' },
+                { id: 'reels', name: 'Platform Optimization', desc: '9:16 formatting, safe zones, platform specs', price: 30, unit: 'per platform' },
+                { id: 'broll', name: 'B-Roll Integration', desc: 'Stock footage sourcing, licensing, seamless integration', price: 40, unit: 'flat' },
+                { id: 'revision', name: 'Additional Revision', desc: 'Beyond included 2 rounds of feedback', price: 35, unit: 'per round' }
+            ]
+        };
+
+        const turnaroundOptions = [
+            { id: 'standard', label: 'Standard', time: '48-72h', fee: 0, multiplier: 1 },
+            { id: 'express', label: 'Express', time: '24-48h', fee: 50, multiplier: 1.3 },
+            { id: 'rush', label: 'Rush', time: '12-24h', fee: 100, multiplier: 1.6 }
+        ];
+
+        // State
+        let cart = [];
+        let selectedEditor = null;
+        let complexity = 1.0;
+        let selectedTurnaround = turnaroundOptions[0];
+        let orders = [];
+        let isDragging = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderEditors();
+            renderServices();
+            renderTurnaround();
+            initComplexitySlider();
+            initCustomCursor();
+            initScrollEffects();
+        });
+
+        // Custom Cursor
+        function initCustomCursor() {
+            const cursor = document.getElementById('cursor');
+            if (window.matchMedia('(pointer: coarse)').matches) {
+                cursor.style.display = 'none';
+                return;
+            }
+
+            let mouseX = 0, mouseY = 0;
+            let cursorX = 0, cursorY = 0;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            function animate() {
+                cursorX += (mouseX - cursorX) * 0.1;
+                cursorY += (mouseY - cursorY) * 0.1;
+                cursor.style.left = cursorX - 10 + 'px';
+                cursor.style.top = cursorY - 10 + 'px';
+                requestAnimationFrame(animate);
+            }
+            animate();
+
+            // Hover effects
+            document.querySelectorAll('a, button, .editor-card, .service-card').forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursor.style.transform = 'scale(2)';
+                    cursor.style.opacity = '0.3';
+                });
+                el.addEventListener('mouseleave', () => {
+                    cursor.style.transform = 'scale(1)';
+                    cursor.style.opacity = '0.5';
+                });
+            });
+        }
+
+        // Scroll Effects
+        function initScrollEffects() {
+            const nav = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 50) {
+                    nav.classList.add('scrolled');
+                } else {
+                    nav.classList.remove('scrolled');
+                }
+            });
+        }
+
+        // Navigation
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(s => {
+                s.classList.remove('active');
+                s.style.opacity = '0';
+            });
+            
+            const target = document.getElementById(sectionId);
+            target.classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            event?.target?.classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            setTimeout(() => {
+                target.style.opacity = '1';
+            }, 100);
+        }
+
+        // Render Editors
+        function renderEditors() {
+            const grid = document.getElementById('editorGrid');
+            grid.innerHTML = editors.map((editor, idx) => `
+                <div class="editor-card" style="animation: fadeUp 0.6s ${idx * 0.1}s both;">
+                    <div class="editor-visual">
+                        <div class="portfolio-showcase" id="portfolio-${editor.id}">
+                            ${editor.portfolio.map(item => `
+                                <div class="portfolio-frame" style="background: linear-gradient(135deg, var(--depth), var(--surface));">
+                                    <span style="filter: drop-shadow(0 10px 30px rgba(0,0,0,0.5));">${item}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="portfolio-nav">
+                            ${editor.portfolio.map((_, i) => `
+                                <div class="nav-dot ${i === 0 ? 'active' : ''}" onclick="changePortfolio(${editor.id}, ${i})"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="editor-info">
+                        <div class="editor-header">
+                            <div class="editor-identity">
+                                <div class="editor-avatar">${editor.avatar}</div>
+                                <div class="editor-name-group">
+                                    <h3>${editor.name}</h3>
+                                    <span class="editor-tier tier-${editor.tier}">${editor.tier}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="editor-stats">
+                            <div class="stat-item">
+                                <span class="stat-value">⭐ ${editor.rating}</span>
+                                <span class="stat-label-small">Rating</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">${editor.projects}</span>
+                                <span class="stat-label-small">Projects</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">${editor.earnings}</span>
+                                <span class="stat-label-small">Earned</span>
+                            </div>
+                        </div>
+
+                        <div class="editor-skills">
+                            ${editor.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}
+                        </div>
+
+                        <p style="color: var(--chrome); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6;">${editor.description}</p>
+
+                        <div class="editor-footer">
+                            <div class="price-display">
+                                <span class="price-amount">$${editor.price}</span>
+                                <span class="price-unit">per hour • ${editor.delivery}</span>
+                            </div>
+                            <button class="select-btn" onclick="selectEditor(${editor.id})">
+                                Select <span style="margin-left: 0.5rem;">→</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function changePortfolio(editorId, index) {
+            const showcase = document.getElementById(`portfolio-${editorId}`);
+            showcase.style.transform = `translateX(-${index * 100}%)`;
+            
+            const dots = showcase.nextElementSibling.querySelectorAll('.nav-dot');
+            dots.forEach((d, i) => d.classList.toggle('active', i === index));
+        }
+
+        function selectEditor(id) {
+            selectedEditor = editors.find(e => e.id === id);
+            showToast(`Selected ${selectedEditor.name}. Configure your package.`, 'success');
+            showSection('builder');
+        }
+
+        // Render Services
+        function renderServices() {
+            const core = document.getElementById('coreServices');
+            const addon = document.getElementById('addonServices');
+            
+            core.innerHTML = services.core.map(s => createServiceCard(s)).join('');
+            addon.innerHTML = services.addons.map(s => createServiceCard(s)).join('');
+        }
+
+        function createServiceCard(service) {
+            return `
+                <div class="service-card" onclick="toggleService('${service.id}')" id="service-${service.id}">
+                    <div class="service-check">✓</div>
+                    <div class="service-name">${service.name}</div>
+                    <div class="service-desc">${service.desc}</div>
+                    <div class="service-meta">
+                        <span class="service-price">$${service.price}</span>
+                        <span class="service-unit">${service.unit}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderTurnaround() {
+            const grid = document.getElementById('turnaroundGrid');
+            grid.innerHTML = turnaroundOptions.map((opt, idx) => `
+                <div class="turnaround-card ${idx === 0 ? 'selected' : ''}" onclick="selectTurnaround(${idx})" id="turnaround-${idx}">
+                    <div class="turnaround-speed">${opt.label}</div>
+                    <div class="turnaround-time">${opt.time}</div>
+                    <div class="turnaround-fee">${opt.fee === 0 ? 'No fee' : '+$' + opt.fee}</div>
+                </div>
+            `).join('');
+        }
+
+        // Complexity Slider
+        function initComplexitySlider() {
+            const slider = document.getElementById('complexitySlider');
+            const fill = document.getElementById('complexityFill');
+            const thumb = document.getElementById('complexityThumb');
+            const display = document.getElementById('complexityDisplay');
+
+            function updateSlider(percent) {
+                const value = 0.8 + (percent * 0.6);
+                complexity = Math.round(value * 10) / 10;
+                
+                fill.style.width = `${percent * 100}%`;
+                thumb.style.left = `${percent * 100}%`;
+                display.textContent = `${complexity.toFixed(1)}x`;
+                
+                updateCart();
+            }
+
+            thumb.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const rect = slider.getBoundingClientRect();
+                const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                updateSlider(percent);
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            slider.addEventListener('click', (e) => {
+                if (e.target === thumb) return;
+                const rect = slider.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                updateSlider(percent);
+            });
+        }
+
+        function selectTurnaround(index) {
+            selectedTurnaround = turnaroundOptions[index];
+            document.querySelectorAll('.turnaround-card').forEach((c, i) => {
+                c.classList.toggle('selected', i === index);
+            });
+            updateCart();
+        }
+
+        function toggleService(id) {
+            const idx = cart.findIndex(item => item.id === id);
+            const card = document.getElementById(`service-${id}`);
+            
+            if (idx > -1) {
+                cart.splice(idx, 1);
+                card.classList.remove('selected');
+            } else {
+                const allServices = [...services.core, ...services.addons];
+                const service = allServices.find(s => s.id === id);
+                cart.push(service);
+                card.classList.add('selected');
+                
+                // Ripple effect
+                const ripple = document.createElement('div');
+                ripple.style.cssText = `
+                    position: absolute;
+                    inset: 0;
+                    background: radial-gradient(circle at center, rgba(0,240,255,0.3), transparent);
+                    opacity: 0;
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                `;
+                card.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            }
+            
+            updateCart();
+            updateCategoryCounts();
+        }
+
+        function updateCategoryCounts() {
+            const coreCount = cart.filter(i => services.core.find(s => s.id === i.id)).length;
+            const addonCount = cart.filter(i => services.addons.find(s => s.id === i.id)).length;
+            
+            document.getElementById('coreCount').textContent = `${coreCount} selected`;
+            document.getElementById('addonCount').textContent = `${addonCount} selected`;
+        }
+
+        function updateCart() {
+            const items = document.getElementById('cartItems');
+            const badge = document.getElementById('cartBadge');
+            const indicator = document.getElementById('cartIndicator');
+            
+            if (cart.length === 0) {
+                items.innerHTML = `
+                    <div class="cart-empty">
+                        <div class="cart-empty-icon">🎬</div>
+                        <p>Select services to begin</p>
+                    </div>
+                `;
+                badge.classList.remove('active');
+                indicator.classList.remove('active');
+            } else {
+                items.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <h4>${item.name}</h4>
+                            <span>$${item.price} ${item.unit}</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <span class="cart-item-price">$${item.price}</span>
+                            <button class="remove-btn" onclick="removeService('${item.id}')">×</button>
+                        </div>
+                    </div>
+                `).join('');
+                
+                badge.textContent = cart.length;
+                badge.classList.add('active');
+                indicator.textContent = cart.length;
+                indicator.classList.add('active');
+            }
+
+            // Calculate totals
+            const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+            const total = Math.round((subtotal * complexity) + selectedTurnaround.fee);
+            
+            document.getElementById('subtotal').textContent = `$${subtotal}`;
+            document.getElementById('multiplierDisplay').textContent = `${complexity.toFixed(1)}x`;
+            document.getElementById('rushDisplay').textContent = `$${selectedTurnaround.fee}`;
+            document.getElementById('totalAmount').textContent = `$${total}`;
+            document.getElementById('submitTotal').textContent = `$${total}`;
+            
+            document.getElementById('checkoutBtn').disabled = cart.length === 0;
+        }
+
+        function removeService(id) {
+            const card = document.getElementById(`service-${id}`);
+            if (card) card.classList.remove('selected');
+            cart = cart.filter(item => item.id !== id);
+            updateCart();
+            updateCategoryCounts();
+        }
+
+        // Modal
+        function openBriefModal() {
+            if (!selectedEditor && cart.length > 0) {
+                showToast('Please select an editor first', 'error');
+                showSection('marketplace');
+                return;
+            }
+            document.getElementById('briefModal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function handleFiles(files) {
+            const list = document.getElementById('fileList');
+            list.innerHTML = Array.from(files).map(f => `
+                <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--elevated); border-radius: 12px; margin-bottom: 0.5rem;">
+                    <span style="font-size: 1.5rem;">📎</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500;">${f.name}</div>
+                        <div style="font-size: 0.85rem; color: var(--chrome);">${(f.size/1024/1024).toFixed(1)} MB</div>
+                    </div>
+                    <span style="color: var(--acid-green);">✓ Ready</span>
+                </div>
+            `).join('');
+        }
+
+        // Drag and drop
+        const dropzone = document.getElementById('dropzone');
+        if (dropzone) {
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('dragover');
+            });
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('dragover');
+            });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+        }
+
+        function submitOrder() {
+            const title = document.getElementById('projectTitle').value;
+            if (!title) {
+                showToast('Please enter a production title', 'error');
+                return;
+            }
+
+            const order = {
+                id: Date.now(),
+                title: title,
+                editor: selectedEditor,
+                services: [...cart],
+                total: document.getElementById('totalAmount').textContent,
+                status: 'In Review',
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                thumbnail: selectedEditor?.portfolio[0] || '🎬'
+            };
+
+            orders.push(order);
+            renderOrders();
+            
+            // Reset
+            cart = [];
+            selectedEditor = null;
+            complexity = 1.0;
+            document.querySelectorAll('.service-card').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.turnaround-card').forEach((c, i) => c.classList.toggle('selected', i === 0));
+            document.getElementById('projectTitle').value = '';
+            document.getElementById('creativeBrief').value = '';
+            document.getElementById('fileList').innerHTML = '';
+            
+            updateCart();
+            updateCategoryCounts();
+            closeModal('briefModal');
+            showSection('orders');
+            showToast('Production submitted successfully', 'success');
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersList');
+            if (orders.length === 0) return;
+
+            container.innerHTML = orders.map(order => `
+                <div style="background: var(--surface); border-radius: 32px; padding: 2.5rem; margin-bottom: 2rem; border: 1px solid rgba(255,255,255,0.05); animation: fadeUp 0.6s;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 2rem;">
+                        <div style="display: flex; gap: 1.5rem; align-items: center;">
+                            <div style="width: 80px; height: 80px; background: var(--elevated); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+                                ${order.thumbnail}
+                            </div>
+                            <div>
+                                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${order.title}</h3>
+                                <p style="color: var(--chrome);">Editor: ${order.editor?.name || 'TBD'} • ${order.date}</p>
+                            </div>
+                        </div>
+                        <span style="padding: 0.8rem 1.5rem; background: rgba(0, 240, 255, 0.1); color: var(--neon-cyan); border-radius: 100px; font-weight: 600; font-size: 0.9rem; border: 1px solid rgba(0, 240, 255, 0.2);">
+                            ${order.status}
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                        ${order.services.map(s => `
+                            <span style="background: var(--elevated); padding: 0.6rem 1.2rem; border-radius: 100px; font-size: 0.9rem; color: var(--platinum); border: 1px solid rgba(255,255,255,0.05);">
+                                ${s.name}
+                            </span>
+                        `).join('')}
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <span style="color: var(--chrome);">${order.services.length} services</span>
+                        <span style="font-family: 'Space Grotesk'; font-size: 2rem; font-weight: 700; color: var(--molten-gold);">${order.total}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toast System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: '✓',
+                error: '✕',
+                info: 'ℹ'
+            };
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[type]}</div>
+                <div>${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            requestAnimationFrame(() => {
+                toast.classList.add('show');
+            });
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('active');
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+            }
+        });
+    </script>
+</body>
+</html>
